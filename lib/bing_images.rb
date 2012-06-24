@@ -43,8 +43,6 @@ module BingImages
     results
   end
 
-  private
-
   def self.build_query(query, safe, offset)
     uri = Addressable::URI.new
     uri.query_values = {
