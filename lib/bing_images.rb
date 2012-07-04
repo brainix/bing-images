@@ -35,46 +35,48 @@ module BingImages
   NUM_PAGES = 20
   RESULTS_PER_PAGE = 50
 
-  def self.search(query, safe, offset)
-    query = build_query(query, safe, offset)
-    url = URL + '?' + query
-    xml = issue_request(url)
-    results = parse_xml(xml)
-    results
-  end
-
-  def self.build_query(query, safe, offset)
-    uri = Addressable::URI.new
-    uri.query_values = {
-      Query: "'" + query + "'",
-      Adult: "'" + (safe ? 'Moderate' : 'Off') + "'",
-      '$skip' => offset,
-    }
-    uri.query
-  end
-
-  def self.issue_request(url)
-    uri = URI(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme == 'https'
-    query = uri.query.nil? ? '' : ('?' + uri.query)
-    request = Net::HTTP::Get.new(uri.path + query)
-    request.basic_auth('', ACCOUNT_KEY)
-    response = http.request(request)
-    response.body
-  end
-
-  def self.parse_xml(xml)
-    doc = REXML::Document.new(xml)
-    results = []
-    doc.elements.each('feed/entry/content/m:properties') do |element|
-      result = {
-        thumbnail: (element.elements.each('d:Thumbnail/d:MediaUrl') {})[0].get_text,
-        full_size: (element.elements.each('d:MediaUrl') {})[0].get_text,
-      }
-      results << result
+  class << self
+    def search(query, safe, offset)
+      query = build_query(query, safe, offset)
+      url = URL + '?' + query
+      xml = issue_request(url)
+      results = parse_xml(xml)
+      results
     end
-    results
+
+    def build_query(query, safe, offset)
+      uri = Addressable::URI.new
+      uri.query_values = {
+        Query: "'" + query + "'",
+        Adult: "'" + (safe ? 'Moderate' : 'Off') + "'",
+        '$skip' => offset,
+      }
+      uri.query
+    end
+
+    def issue_request(url)
+      uri = URI(url)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
+      query = uri.query.nil? ? '' : ('?' + uri.query)
+      request = Net::HTTP::Get.new(uri.path + query)
+      request.basic_auth('', ACCOUNT_KEY)
+      response = http.request(request)
+      response.body
+    end
+
+    def parse_xml(xml)
+      doc = REXML::Document.new(xml)
+      results = []
+      doc.elements.each('feed/entry/content/m:properties') do |element|
+        result = {
+          thumbnail: (element.elements.each('d:Thumbnail/d:MediaUrl') {})[0].get_text,
+          full_size: (element.elements.each('d:MediaUrl') {})[0].get_text,
+        }
+        results << result
+      end
+      results
+    end
   end
 end
 
