@@ -29,7 +29,7 @@ require 'URI'
 
 
 module BingImages
-  ACCOUNT_KEY = 'vwg49S0132p4mwVBpBL4p4GXTAhQyXU9PJoLnzpsXnE='
+  ACCOUNT_KEY = ENV['BING_ACCOUNT_KEY']
   URL = 'https://api.datamarket.azure.com/Bing/Search/Image'
 
   NUM_PAGES = 20
