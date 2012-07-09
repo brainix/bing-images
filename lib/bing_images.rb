@@ -23,8 +23,6 @@
 
 require 'addressable/uri'
 require 'net/http'
-require 'net/https'
-require 'rexml/document'
 require 'URI'
 
 
@@ -39,9 +37,7 @@ module BingImages
     def search(query, safe, offset)
       query = build_query(query, safe, offset)
       url = URL + '?' + query
-      xml = issue_request(url)
-      results = parse_xml(xml)
-      results
+      json = issue_request(url)
     end
 
     def build_query(query, safe, offset)
@@ -49,6 +45,7 @@ module BingImages
       uri.query_values = {
         Query: "'" + query + "'",
         Adult: "'" + (safe ? 'Moderate' : 'Off') + "'",
+        '$format' => 'json',
         '$skip' => offset,
       }
       uri.query
@@ -64,25 +61,12 @@ module BingImages
       response = http.request(request)
       response.body
     end
-
-    def parse_xml(xml)
-      doc = REXML::Document.new(xml)
-      results = []
-      doc.elements.each('feed/entry/content/m:properties') do |element|
-        result = {
-          thumbnail: (element.elements.each('d:Thumbnail/d:MediaUrl') {})[0].get_text,
-          full_size: (element.elements.each('d:MediaUrl') {})[0].get_text,
-        }
-        results << result
-      end
-      results
-    end
   end
 end
 
 
 if __FILE__ == $0
   query = ARGV.join(' ')
-  photos = BingImages.search(query, false, 0)
-  puts photos
+  json = BingImages.search(query, false, 0)
+  puts json
 end
